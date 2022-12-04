@@ -19,29 +19,20 @@ export default function BlogDetail({ frontmatter, content }) {
   );
 }
 
-export async function getStaticPaths() {
-  // Get list of all files from our posts directory
-  const files = fs.readdirSync("posts");
-  // Generate a path for each one
-  const paths = files.map((fileName) => ({
-    params: {
-      slug: fileName.replace(".md", ""),
-    },
-  }));
-  // return list of paths
-  return {
-    paths,
-    fallback: false,
-  };
-}
-
-export async function getStaticProps({ params: { slug } }) {
-  const fileName = fs.readFileSync(`posts/${slug}.md`, "utf-8");
-  const { data: frontmatter, content } = matter(fileName);
-  return {
-    props: {
-      frontmatter,
-      content,
-    },
-  };
+export async function getServerSideProps({ params: { slug } }) {
+  let path = `posts/${slug}.md`;
+  if (fs.existsSync(path)) {
+    const fileName = fs.readFileSync(path, "utf-8");
+    const { data: frontmatter, content } = matter(fileName);
+    return {
+      props: {
+        frontmatter,
+        content,
+      },
+    };
+  } else {
+    return {
+      notFound: true,
+    };
+  }
 }
